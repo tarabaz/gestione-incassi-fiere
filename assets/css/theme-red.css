@@ -1,0 +1,20 @@
+
+/* 
+ * File: /assets/css/theme-red.css
+ * Tema colore rosso
+ */
+
+.gif-admin {
+    --primary-color: #d63638;
+    --secondary-color: #a02626;
+    --tertiary-color: #fbecec;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}

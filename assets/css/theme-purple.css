@@ -1,0 +1,19 @@
+/* 
+ * File: /assets/css/theme-purple.css
+ * Tema colore viola
+ */
+
+.gif-admin {
+    --primary-color: #8e44ad;
+    --secondary-color: #703688;
+    --tertiary-color: #f3e9f7;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}

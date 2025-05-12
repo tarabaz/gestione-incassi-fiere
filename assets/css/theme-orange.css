@@ -1,0 +1,59 @@
+/* 
+ * File: /assets/css/theme-green.css
+ * Tema colore verde
+ */
+
+.gif-admin {
+    --primary-color: #00a32a;
+    --secondary-color: #007722;
+    --tertiary-color: #e6f7e9;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}
+
+/* 
+ * File: /assets/css/theme-purple.css
+ * Tema colore viola
+ */
+
+.gif-admin {
+    --primary-color: #8e44ad;
+    --secondary-color: #703688;
+    --tertiary-color: #f3e9f7;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}
+
+/* 
+ * File: /assets/css/theme-orange.css
+ * Tema colore arancione
+ */
+
+.gif-admin {
+    --primary-color: #e67e22;
+    --secondary-color: #d35400;
+    --tertiary-color: #fdf1e8;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}

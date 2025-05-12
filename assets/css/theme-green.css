@@ -1,0 +1,19 @@
+/* 
+ * File: /assets/css/theme-green.css
+ * Tema colore verde
+ */
+
+.gif-admin {
+    --primary-color: #00a32a;
+    --secondary-color: #007722;
+    --tertiary-color: #e6f7e9;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}

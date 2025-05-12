@@ -1,0 +1,21 @@
+
+/* 
+ * File: /assets/css/theme-blue.css
+ * Tema colore blu
+ */
+
+.gif-admin {
+    --primary-color: #2271b1;
+    --secondary-color: #135e96;
+    --tertiary-color: #e5f0f9;
+}
+
+.gif-stat-icon, 
+.gif-card-icon {
+    background-color: var(--tertiary-color);
+}
+
+.gif-nav-tab.active a {
+    border-bottom-color: var(--primary-color);
+}
+
