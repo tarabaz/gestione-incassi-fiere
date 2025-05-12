@@ -1,4 +1,64 @@
 <!-- templates/form-fiera.php -->
+<script>
+
+if (defined('DOING_AJAX') && DOING_AJAX) {
+    // Includi le funzioni ajax qui
+    add_action('wp_ajax_salva_fiera', 'salva_fiera_callback');
+    function salva_fiera_callback() {
+        check_ajax_referer('gif_nonce', 'nonce');
+
+        if (!isset($_POST['fiera']) || !is_array($_POST['fiera'])) {
+            wp_send_json_error('Dati fiera non ricevuti.');
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'fiere';
+        $fiera = $_POST['fiera'];
+
+        $result = $wpdb->insert($table, [
+            'nome'               => sanitize_text_field($fiera['nome']),
+            'data_fiera'         => sanitize_text_field($fiera['data_fiera']),
+            'luogo'              => sanitize_text_field($fiera['luogo']),
+            'incasso_contanti'   => floatval($fiera['incasso_contanti']),
+            'incasso_pos'        => floatval($fiera['incasso_pos']),
+            'spese_partecipazione' => floatval($fiera['spese_partecipazione']),
+            'spese_noleggio'     => floatval($fiera['spese_noleggio']),
+            'spese_pernottamento' => floatval($fiera['spese_pernottamento']),
+            'altre_spese_non_scaricabili' => floatval($fiera['altre_spese_non_scaricabili'])
+        ]);
+
+        if ($result !== false) {
+            wp_send_json_success(['message' => 'Fiera salvata con successo.']);
+        } else {
+            wp_send_json_error('Errore durante il salvataggio nel database.');
+        }
+    }
+
+    add_action('wp_ajax_elimina_fiera', 'elimina_fiera_callback');
+    function elimina_fiera_callback() {
+        check_ajax_referer('gif_nonce', 'nonce');
+
+        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+
+        if (!$id) {
+            wp_send_json_error('ID non valido.');
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'fiere';
+        $deleted = $wpdb->delete($table, ['id' => $id]);
+
+        if ($deleted !== false) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Errore durante la cancellazione.');
+        }
+    }
+
+    exit;
+}
+
+</script>
 <div class="wrap gif-admin">
     <h1 class="gif-page-title">
         <span class="dashicons dashicons-edit"></span>
@@ -173,6 +233,7 @@
     </div>
 </div>
 <!-- Parte modificata del form di inserimento/modifica fiera -->
+<!-- 
 <script>
 jQuery(document).ready(function($) {
     // Inizializza datepicker
@@ -346,3 +407,4 @@ jQuery(document).ready(function($) {
     });
 });
 </script>
+-->
