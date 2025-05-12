@@ -59,8 +59,8 @@ jQuery(document).ready(function($) {
     }
     
     // ====== INIZIALIZZAZIONE DATATABLES ======
-    if ($.fn.DataTable) {
-        $('#tabella-fiere').DataTable({
+ if ($.fn.DataTable && !$.fn.DataTable.isDataTable('#tabella-fiere')) {
+    $('#tabella-fiere').DataTable({
             responsive: true,
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
