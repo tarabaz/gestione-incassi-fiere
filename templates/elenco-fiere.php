@@ -128,65 +128,28 @@ if (isset($_GET['message'])) {
     </div>
 </div>
 <!-- Parte modificata del template elenco-fiere.php -->
-/**
- * Assicurati che il seguente script si trovi alla fine del file templates/elenco-fiere.php
- * Sostituisci completamente lo script attuale con questo
- */
+
+<!-- Modifica del template templates/elenco-fiere.php -->
+<!-- Sostituisci lo script alla fine del file con questo semplice script -->
 
 <script>
 jQuery(document).ready(function($) {
-    // Soluzione definitiva per l'errore di DataTables
-    // Prima distruggiamo qualsiasi istanza esistente della tabella
-    if ($.fn.dataTable.isDataTable('#tabella-fiere')) {
+    // Se DataTables è già inizializzato, distruggilo
+    if ($.fn.DataTable.isDataTable('#tabella-fiere')) {
         $('#tabella-fiere').DataTable().destroy();
-        console.log('Istanza DataTables esistente distrutta');
     }
     
-    // Anche se non dovrebbe essere necessario, rimuoviamo qualsiasi attributo DataTables
-    $('#tabella-fiere').removeAttr('aria-describedby');
-    $('#tabella-fiere').removeData();
-    
-    // Rimuovi eventuali elementi DataTables residui
-    $('.dataTables_wrapper').remove();
-    
-    // Aspetta un momento prima di reinizializzare
-    setTimeout(function() {
-        // Inizializza DataTables con una nuova configurazione
-        var table = $('#tabella-fiere').DataTable({
-            responsive: true,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
-            },
-            order: [[1, 'desc']], // Ordina per data di default
-            columnDefs: [
-                { targets: 'no-sort', orderable: false }
-            ],
-            pageLength: 25,
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'copy',
-                    text: '<span class="dashicons dashicons-clipboard"></span> Copia',
-                    className: 'gif-dt-button'
-                },
-                {
-                    extend: 'excel',
-                    text: '<span class="dashicons dashicons-media-spreadsheet"></span> Excel',
-                    className: 'gif-dt-button'
-                },
-                {
-                    extend: 'pdf',
-                    text: '<span class="dashicons dashicons-pdf"></span> PDF',
-                    className: 'gif-dt-button'
-                },
-                {
-                    extend: 'print',
-                    text: '<span class="dashicons dashicons-printer"></span> Stampa',
-                    className: 'gif-dt-button'
-                }
-            ]
-        });
-        console.log('DataTables reinizializzato con successo');
-    }, 100);
+    // Inizializza DataTables direttamente qui
+    $('#tabella-fiere').DataTable({
+        responsive: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
+        },
+        order: [[1, 'desc']], // Ordina per data di default
+        columnDefs: [
+            { targets: 'no-sort', orderable: false }
+        ],
+        pageLength: 25
+    });
 });
 </script>
