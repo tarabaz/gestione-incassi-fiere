@@ -305,27 +305,31 @@ class GIF_Database {
         ");
     }
     
-    /**
-     * Ottieni dati per grafico annuale
-     */
-    public function get_dati_grafico_annuale($anni = 2) {
-        global $wpdb;
-        
-        $anno_corrente = date('Y');
-        $anno_inizio = $anno_corrente - $anni + 1;
-        
-        return $wpdb->get_results("
-            SELECT 
-                YEAR(data_fiera) as anno, 
-                MONTH(data_fiera) as mese, 
-                SUM(incasso_totale) as incasso_totale, 
-                SUM(guadagno_netto) as guadagno_netto 
-            FROM {$this->tabella_fiere} 
-            WHERE YEAR(data_fiera) >= {$anno_inizio} 
-            GROUP BY YEAR(data_fiera), MONTH(data_fiera) 
-            ORDER BY anno, mese
-        ");
-    }
+/**
+ * Correzione della funzione get_dati_grafico_annuale nel file class-gif-database.php
+ */
+public function get_dati_grafico_annuale($anni = 2) {
+    global $wpdb;
+    
+    // Utilizza l'anno corrente effettivo invece di date() che potrebbe essere alterato in WordPress
+    $anno_corrente = intval(date('Y'));
+    $anno_inizio = $anno_corrente - $anni + 1;
+    
+    // Debug query
+    $query = "
+        SELECT 
+            YEAR(data_fiera) as anno, 
+            MONTH(data_fiera) as mese, 
+            SUM(incasso_totale) as incasso_totale, 
+            SUM(guadagno_netto) as guadagno_netto 
+        FROM {$this->tabella_fiere} 
+        GROUP BY YEAR(data_fiera), MONTH(data_fiera) 
+        ORDER BY anno, mese
+    ";
+    
+    // Esegui la query senza filtro sull'anno per vedere tutti i dati
+    return $wpdb->get_results($query);
+}
     
     /**
      * Ottieni la miglior fiera

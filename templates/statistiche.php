@@ -227,132 +227,148 @@
         <?php endif; ?>
     </div>
 </div>
-
+<!-- Modifica alla pagina statistiche.php per aggiungere debug e fix -->
 <script>
 jQuery(document).ready(function($) {
     <?php if (!empty($stats->totale_fiere)) : ?>
     
-    // Grafico andamento
-    var periodi = <?php 
-        $labels = array();
-        $incassi = array();
-        $guadagni = array();
-        
-        foreach ($dati_grafico as $dato) {
-            $labels[] = $dato['periodo'];
-            $incassi[] = $dato['incasso'];
-            $guadagni[] = $dato['guadagno'];
-        }
-        
-        echo json_encode($labels); 
-    ?>;
+    console.log("Inizializzazione grafici delle statistiche...");
     
+    // Dati per i grafici
+    var periodi = <?php echo json_encode($labels); ?>;
     var incassi = <?php echo json_encode($incassi); ?>;
     var guadagni = <?php echo json_encode($guadagni); ?>;
     
-    var ctx = document.getElementById('grafico-andamento').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: periodi,
-            datasets: [
-                {
-                    label: '<?php _e('Incasso Totale', 'gestione-incassi-fiere'); ?> (<?php echo $valuta; ?>)',
-                    data: incassi,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: '<?php _e('Guadagno Netto', 'gestione-incassi-fiere'); ?> (<?php echo $valuta; ?>)',
-                    data: guadagni,
-                    backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    type: 'line'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '<?php echo $valuta; ?> ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        }
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            var label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += '<?php echo $valuta; ?> ' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            return label;
-                        }
-                    }
-                }
-            }
-        }
+    console.log("Dati grafici:", {
+        periodi: periodi,
+        incassi: incassi,
+        guadagni: guadagni,
+        incasso_contanti: <?php echo $stats->incasso_contanti; ?>,
+        incasso_pos: <?php echo $stats->incasso_pos; ?>
     });
     
-    // Grafico distribuzione
-    var ctx2 = document.getElementById('grafico-distribuzione').getContext('2d');
-    new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-            labels: ['<?php _e('Incasso Contanti', 'gestione-incassi-fiere'); ?>', '<?php _e('Incasso POS', 'gestione-incassi-fiere'); ?>'],
-            datasets: [{
-                data: [
-                    <?php echo $stats->incasso_contanti; ?>, 
-                    <?php echo $stats->incasso_pos; ?>
-                ],
-                backgroundColor: [
-                    'rgba(255, 159, 64, 0.7)',
-                    'rgba(54, 162, 235, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(255, 159, 64, 1)',
-                    'rgba(54, 162, 235, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            var label = context.label || '';
-                            if (label) {
-                                label += ': ';
+    // Se non ci sono periodi definiti, mostra un messaggio
+    if (periodi.length === 0) {
+        $("#grafico-andamento").html('<div style="text-align: center; padding: 50px 20px;"><p style="color: #646970; font-size: 16px;">Non ci sono dati sufficienti per visualizzare il grafico</p></div>');
+        $("#grafico-distribuzione").html('<div style="text-align: center; padding: 50px 20px;"><p style="color: #646970; font-size: 16px;">Non ci sono dati sufficienti per visualizzare il grafico</p></div>');
+    } else {
+        // Grafico andamento
+        var ctx = document.getElementById('grafico-andamento').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: periodi,
+                datasets: [
+                    {
+                        label: '<?php _e('Incasso Totale', 'gestione-incassi-fiere'); ?> (<?php echo $valuta; ?>)',
+                        data: incassi,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '<?php _e('Guadagno Netto', 'gestione-incassi-fiere'); ?> (<?php echo $valuta; ?>)',
+                        data: guadagni,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        type: 'line'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '<?php echo $valuta; ?> ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                             }
-                            var value = context.parsed;
-                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                            var percentage = Math.round((value / total) * 100);
-                            
-                            label += '<?php echo $valuta; ?> ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            label += ' (' + percentage + '%)';
-                            
-                            return label;
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += '<?php echo $valuta; ?> ' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Verifica se ci sono incassi per il grafico a torta
+    var incassoContanti = <?php echo $stats->incasso_contanti; ?>;
+    var incassoPOS = <?php echo $stats->incasso_pos; ?>;
+    
+    if (incassoContanti === 0 && incassoPOS === 0) {
+        $("#grafico-distribuzione").html('<div style="text-align: center; padding: 50px 20px;"><p style="color: #646970; font-size: 16px;">Non ci sono dati di incasso per visualizzare il grafico</p></div>');
+    } else {
+        // Grafico distribuzione
+        var ctx2 = document.getElementById('grafico-distribuzione').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['<?php _e('Incasso Contanti', 'gestione-incassi-fiere'); ?>', '<?php _e('Incasso POS', 'gestione-incassi-fiere'); ?>'],
+                datasets: [{
+                    data: [
+                        incassoContanti, 
+                        incassoPOS
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(54, 162, 235, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(54, 162, 235, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                var value = context.parsed;
+                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                var percentage = Math.round((value / total) * 100);
+                                
+                                label += '<?php echo $valuta; ?> ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                label += ' (' + percentage + '%)';
+                                
+                                return label;
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
     
     <?php endif; ?>
 });

@@ -257,34 +257,43 @@ add_submenu_page(
         include(GIF_PLUGIN_DIR . 'templates/form-fiera.php');
     }
     
-    /**
-     * Pagina delle statistiche
-     */
-    public function pagina_statistiche() {
-        // Ottieni statistiche generali
-        $stats = $this->db->get_statistiche_generali();
-        
-        // Ottieni le fiere più redditizie
-        $top_fiere = $this->db->get_fiere_piu_redditizie();
-        
-        // Ottieni le fiere meno redditizie
-        $bottom_fiere = $this->db->get_fiere_meno_redditizie();
-        
-        // Ottieni dati per grafico annuale
-        $dati_annuali = $this->db->get_dati_grafico_annuale();
-        
-        // Ottieni valuta
-        $valuta = $this->db->get_impostazione('valuta') ?: '€';
-        
-        // Prepara i dati per i grafici
-        $mesi = array('Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre');
-        $dati_grafico = array();
-        
+/**
+ * Modifica alla funzione pagina_statistiche() nella classe GIF_Admin
+ * Sostituisci o modifica questa parte
+ */
+public function pagina_statistiche() {
+    // Ottieni statistiche generali
+    $stats = $this->db->get_statistiche_generali();
+    
+    // Ottieni le fiere più redditizie
+    $top_fiere = $this->db->get_fiere_piu_redditizie();
+    
+    // Ottieni le fiere meno redditizie
+    $bottom_fiere = $this->db->get_fiere_meno_redditizie();
+    
+    // Ottieni dati per grafico annuale
+    $dati_annuali = $this->db->get_dati_grafico_annuale();
+    
+    // Ottieni valuta
+    $valuta = $this->db->get_impostazione('valuta') ?: '€';
+    
+    // Prepara i dati per i grafici
+    $mesi = array('Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre');
+    $dati_grafico = array();
+    $labels = array();
+    $incassi = array();
+    $guadagni = array();
+    
+    if (!empty($dati_annuali)) {
         foreach ($dati_annuali as $dato) {
             $anno = $dato->anno;
             $mese = $dato->mese;
             $mese_nome = $mesi[$mese - 1];
             $periodo = $mese_nome . ' ' . $anno;
+            
+            $labels[] = $periodo;
+            $incassi[] = floatval($dato->incasso_totale);
+            $guadagni[] = floatval($dato->guadagno_netto);
             
             $dati_grafico[] = array(
                 'periodo' => $periodo,
@@ -292,11 +301,16 @@ add_submenu_page(
                 'guadagno' => floatval($dato->guadagno_netto)
             );
         }
-        
-        // Output della pagina
-        include(GIF_PLUGIN_DIR . 'templates/statistiche.php');
     }
     
+    // Mostra informazioni di debug se siamo in modalità sviluppo
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        $this->debugGrafici();
+    }
+    
+    // Output della pagina
+    include(GIF_PLUGIN_DIR . 'templates/statistiche.php');
+}
     /**
      * Pagina delle impostazioni
      */
@@ -307,4 +321,65 @@ add_submenu_page(
         // Output della pagina
         include(GIF_PLUGIN_DIR . 'templates/impostazioni.php');
     }
+	
+	/**
+ * Aggiungere questa funzione debugGrafici() alla classe GIF_Admin
+ * nel file includes/class-gif-admin.php
+ */
+private function debugGrafici() {
+    global $wpdb;
+    $tabella_fiere = $this->db->get_tabella_fiere();
+    
+    // Debug informazioni sul database
+    $count = $wpdb->get_var("SELECT COUNT(*) FROM {$tabella_fiere}");
+    $fiere = $wpdb->get_results("SELECT id, nome_fiera, data_fiera, incasso_totale, incasso_contanti, incasso_pos, guadagno_netto FROM {$tabella_fiere} ORDER BY data_fiera DESC");
+    
+    echo '<div style="background: #f0f0f1; padding: 15px; margin: 15px 0; border-left: 4px solid #646970;">';
+    echo '<h3>Debug Informazioni Grafici</h3>';
+    echo '<p>Numero totale fiere: <strong>' . $count . '</strong></p>';
+    
+    if ($count > 0) {
+        echo '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+        echo '<tr style="background: #e5e5e5;"><th style="text-align: left; padding: 8px;">ID</th><th style="text-align: left; padding: 8px;">Nome</th><th style="text-align: left; padding: 8px;">Data</th><th style="text-align: left; padding: 8px;">Incasso Totale</th><th style="text-align: left; padding: 8px;">Contanti</th><th style="text-align: left; padding: 8px;">POS</th><th style="text-align: left; padding: 8px;">Guadagno</th></tr>';
+        
+        foreach ($fiere as $fiera) {
+            echo '<tr style="border-bottom: 1px solid #ddd;">';
+            echo '<td style="padding: 8px;">' . $fiera->id . '</td>';
+            echo '<td style="padding: 8px;">' . esc_html($fiera->nome_fiera) . '</td>';
+            echo '<td style="padding: 8px;">' . date('d/m/Y', strtotime($fiera->data_fiera)) . '</td>';
+            echo '<td style="padding: 8px;">' . number_format($fiera->incasso_totale, 2, ',', '.') . '</td>';
+            echo '<td style="padding: 8px;">' . number_format($fiera->incasso_contanti, 2, ',', '.') . '</td>';
+            echo '<td style="padding: 8px;">' . number_format($fiera->incasso_pos, 2, ',', '.') . '</td>';
+            echo '<td style="padding: 8px;">' . number_format($fiera->guadagno_netto, 2, ',', '.') . '</td>';
+            echo '</tr>';
+        }
+        
+        echo '</table>';
+    }
+    
+    // Ottieni dati per grafico annuale
+    $dati_annuali = $this->db->get_dati_grafico_annuale(2);
+    
+    echo '<h3>Dati per Grafico Annuale</h3>';
+    if (empty($dati_annuali)) {
+        echo '<p>Nessun dato disponibile per il grafico annuale</p>';
+    } else {
+        echo '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+        echo '<tr style="background: #e5e5e5;"><th style="text-align: left; padding: 8px;">Anno</th><th style="text-align: left; padding: 8px;">Mese</th><th style="text-align: left; padding: 8px;">Incasso Totale</th><th style="text-align: left; padding: 8px;">Guadagno Netto</th></tr>';
+        
+        foreach ($dati_annuali as $dato) {
+            echo '<tr style="border-bottom: 1px solid #ddd;">';
+            echo '<td style="padding: 8px;">' . $dato->anno . '</td>';
+            echo '<td style="padding: 8px;">' . $dato->mese . '</td>';
+            echo '<td style="padding: 8px;">' . number_format($dato->incasso_totale, 2, ',', '.') . '</td>';
+            echo '<td style="padding: 8px;">' . number_format($dato->guadagno_netto, 2, ',', '.') . '</td>';
+            echo '</tr>';
+        }
+        
+        echo '</table>';
+    }
+    
+    echo '</div>';
+}
+	
 }
