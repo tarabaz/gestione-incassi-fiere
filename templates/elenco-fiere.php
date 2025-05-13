@@ -1,4 +1,15 @@
 <!-- templates/elenco-fiere.php -->
+<?php
+// Gestione messaggi
+if (isset($_GET['message'])) {
+    if ($_GET['message'] === 'deleted') {
+        echo '<div class="notice notice-success is-dismissible"><p>' . __('Fiera eliminata con successo!', 'gestione-incassi-fiere') . '</p></div>';
+    } elseif ($_GET['message'] === 'error') {
+        echo '<div class="notice notice-error is-dismissible"><p>' . __('Errore durante l\'eliminazione della fiera.', 'gestione-incassi-fiere') . '</p></div>';
+    }
+}
+?>
+
 <div class="wrap gif-admin">
     <h1 class="gif-page-title">
         <span class="dashicons dashicons-list-view"></span>
@@ -72,9 +83,9 @@
                                             <a href="<?php echo admin_url('admin.php?page=gestione-incassi-fiere-nuova&id=' . $fiera->id); ?>" class="gif-button gif-button-sm gif-button-action gif-button-edit" title="<?php _e('Modifica', 'gestione-incassi-fiere'); ?>">
                                                 <span class="dashicons dashicons-edit"></span>
                                             </a>
-                                            <button type="button" class="gif-button gif-button-sm gif-button-action gif-button-delete elimina-fiera" data-id="<?php echo $fiera->id; ?>" title="<?php _e('Elimina', 'gestione-incassi-fiere'); ?>">
-                                                <span class="dashicons dashicons-trash"></span>
-                                            </button>
+											<a href="<?php echo wp_nonce_url(admin_url('admin.php?page=gestione-incassi-fiere-elimina&id=' . $fiera->id), 'elimina_fiera_' . $fiera->id); ?>" class="gif-button gif-button-sm gif-button-action gif-button-delete" onclick="return confirm('<?php _e('Sei sicuro di voler eliminare questa fiera?', 'gestione-incassi-fiere'); ?>')">
+													<span class="dashicons dashicons-trash"></span>
+											</a>
                                         </div>
                                     </td>
                                 </tr>

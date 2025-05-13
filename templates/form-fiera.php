@@ -1,64 +1,4 @@
 <!-- templates/form-fiera.php -->
-<script>
-
-if (defined('DOING_AJAX') && DOING_AJAX) {
-    // Includi le funzioni ajax qui
-    add_action('wp_ajax_salva_fiera', 'salva_fiera_callback');
-    function salva_fiera_callback() {
-        check_ajax_referer('gif_nonce', 'nonce');
-
-        if (!isset($_POST['fiera']) || !is_array($_POST['fiera'])) {
-            wp_send_json_error('Dati fiera non ricevuti.');
-        }
-
-        global $wpdb;
-        $table = $wpdb->prefix . 'fiere';
-        $fiera = $_POST['fiera'];
-
-        $result = $wpdb->insert($table, [
-            'nome'               => sanitize_text_field($fiera['nome']),
-            'data_fiera'         => sanitize_text_field($fiera['data_fiera']),
-            'luogo'              => sanitize_text_field($fiera['luogo']),
-            'incasso_contanti'   => floatval($fiera['incasso_contanti']),
-            'incasso_pos'        => floatval($fiera['incasso_pos']),
-            'spese_partecipazione' => floatval($fiera['spese_partecipazione']),
-            'spese_noleggio'     => floatval($fiera['spese_noleggio']),
-            'spese_pernottamento' => floatval($fiera['spese_pernottamento']),
-            'altre_spese_non_scaricabili' => floatval($fiera['altre_spese_non_scaricabili'])
-        ]);
-
-        if ($result !== false) {
-            wp_send_json_success(['message' => 'Fiera salvata con successo.']);
-        } else {
-            wp_send_json_error('Errore durante il salvataggio nel database.');
-        }
-    }
-
-    add_action('wp_ajax_elimina_fiera', 'elimina_fiera_callback');
-    function elimina_fiera_callback() {
-        check_ajax_referer('gif_nonce', 'nonce');
-
-        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-
-        if (!$id) {
-            wp_send_json_error('ID non valido.');
-        }
-
-        global $wpdb;
-        $table = $wpdb->prefix . 'fiere';
-        $deleted = $wpdb->delete($table, ['id' => $id]);
-
-        if ($deleted !== false) {
-            wp_send_json_success();
-        } else {
-            wp_send_json_error('Errore durante la cancellazione.');
-        }
-    }
-
-    exit;
-}
-
-</script>
 <div class="wrap gif-admin">
     <h1 class="gif-page-title">
         <span class="dashicons dashicons-edit"></span>
@@ -67,10 +7,24 @@ if (defined('DOING_AJAX') && DOING_AJAX) {
     
     <?php include('partials/navigation.php'); ?>
     
+    <?php
+    // Gestione messaggi
+    if (isset($_GET['message'])) {
+        if ($_GET['message'] === 'saved') {
+            echo '<div class="notice notice-success is-dismissible"><p>' . __('Fiera salvata con successo!', 'gestione-incassi-fiere') . '</p></div>';
+        } elseif ($_GET['message'] === 'error') {
+            echo '<div class="notice notice-error is-dismissible"><p>' . __('Errore durante il salvataggio della fiera.', 'gestione-incassi-fiere') . '</p></div>';
+        }
+    }
+    ?>
+    
     <div class="gif-content">
         <div class="gif-box">
             <div class="gif-box-content">
-                <form id="form-fiera" class="gif-form">
+                <!-- Modificato per usare un form standard invece di AJAX -->
+                <form id="form-fiera" class="gif-form" method="post" action="<?php echo admin_url('admin.php'); ?>">
+                    <input type="hidden" name="gif_action" value="salva_fiera">
+                    <?php wp_nonce_field('gif_salva_fiera', 'gif_nonce'); ?>
                     <input type="hidden" name="id" value="<?php echo $is_edit ? $fiera->id : ''; ?>">
                     
                     <div class="gif-form-row">
@@ -232,8 +186,7 @@ if (defined('DOING_AJAX') && DOING_AJAX) {
         </div>
     </div>
 </div>
-<!-- Parte modificata del form di inserimento/modifica fiera -->
-<!-- 
+
 <script>
 jQuery(document).ready(function($) {
     // Inizializza datepicker
@@ -308,103 +261,32 @@ jQuery(document).ready(function($) {
         calcolaValori();
     });
     
-    // Variabile per evitare invii multipli
-    var isSubmitting = false;
-    
-    // Gestione invio form - CORREZIONE DUPLICAZIONE
+    // Aggiunta della validazione del form prima dell'invio
     $('#form-fiera').on('submit', function(e) {
-        e.preventDefault();
+        var nomeField = $('#nome_fiera');
+        var dataField = $('#data_fiera');
         
-        // Evita l'invio multiplo del form
-        if (isSubmitting) {
-            console.log('Invio già in corso, operazione bloccata');
+        // Verifica nome fiera
+        if (nomeField.val().trim() === '') {
+            alert('Inserisci il nome della fiera');
+            nomeField.focus();
+            e.preventDefault();
             return false;
         }
         
-        // Imposta la flag di invio
-        isSubmitting = true;
-        console.log('Invio form iniziato');
+        // Verifica data fiera
+        if (dataField.val().trim() === '') {
+            alert('Inserisci la data della fiera');
+            dataField.focus();
+            e.preventDefault();
+            return false;
+        }
         
-        // Recupera i valori dal form
-        var formData = $(this).serializeArray();
-        var data = {};
+        // Disabilita il pulsante di invio per evitare doppie sottomissioni
+        $(this).find('button[type="submit"]').prop('disabled', true).text('Salvataggio in corso...');
         
-        $.each(formData, function(i, field) {
-            data[field.name] = field.value;
-        });
-        
-        // Converti la data dal formato dd/mm/yyyy a yyyy-mm-dd
-        var dataParti = data.data_fiera.split('/');
-        data.data_fiera = dataParti[2] + '-' + dataParti[1] + '-' + dataParti[0];
-        
-        // Invia i dati tramite AJAX
-        $.ajax({
-            url: gif_vars.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'salva_fiera',
-                nonce: gif_vars.nonce,
-                fiera: data
-            },
-            beforeSend: function() {
-                // Mostra loader
-                Swal.fire({
-                    title: '<?php _e('Salvataggio in corso...', 'gestione-incassi-fiere'); ?>',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                // Disabilita il pulsante di invio
-                $('#form-fiera button[type="submit"]').prop('disabled', true);
-            },
-            success: function(response) {
-                console.log('Risposta ricevuta:', response);
-                
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: response.data.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    
-                    // Reindirizza all'elenco dopo il salvataggio
-                    setTimeout(function() {
-                        window.location.href = '<?php echo admin_url('admin.php?page=gestione-incassi-fiere-elenco'); ?>';
-                    }, 1500);
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '<?php _e('Errore', 'gestione-incassi-fiere'); ?>',
-                        text: response.data
-                    });
-                    
-                    // Resetta la flag di invio per permettere un nuovo tentativo
-                    isSubmitting = false;
-                    
-                    // Riabilita il pulsante di invio
-                    $('#form-fiera button[type="submit"]').prop('disabled', false);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Errore AJAX:', xhr, status, error);
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: '<?php _e('Errore', 'gestione-incassi-fiere'); ?>',
-                    text: '<?php _e('Errore durante la comunicazione con il server.', 'gestione-incassi-fiere'); ?> (' + error + ')'
-                });
-                
-                // Resetta la flag di invio per permettere un nuovo tentativo
-                isSubmitting = false;
-                
-                // Riabilita il pulsante di invio
-                $('#form-fiera button[type="submit"]').prop('disabled', false);
-            }
-        });
+        // Tutto ok, procedi con l'invio
+        return true;
     });
 });
 </script>
--->

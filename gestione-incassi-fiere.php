@@ -18,13 +18,18 @@ define('GIF_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GIF_PLUGIN_FILE', __FILE__);
 define('GIF_PLUGIN_VERSION', '2.0');
 
-// Inclusione dei file
+/**
+ * Modifiche al file principale gestione-incassi-fiere.php
+ */
+
+// Aggiungi queste righe per includere e inizializzare la classe GIF_Handler
+
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-loader.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-admin.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-database.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-ajax.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-settings.php';
-require_once plugin_dir_path(__FILE__) . 'includes/ajax-handlers.php';
+require_once GIF_PLUGIN_DIR . 'includes/class-gif-handler.php'; // Aggiunto nuovo file
 
 /**
  * Classe principale del plugin
@@ -71,24 +76,25 @@ class Gestione_Incassi_Fiere {
         return self::$instance;
     }
     
-    /**
-     * Costruttore della classe
-     */
-    private function __construct() {
-        // Inizializzazione degli oggetti
-        $this->loader = new GIF_Loader();
-        $this->database = new GIF_Database();
-        $this->admin = new GIF_Admin($this->database);
-        $this->ajax = new GIF_Ajax($this->database);
-        $this->settings = new GIF_Settings();
-        
-        // Registrazione dei hook di attivazione e disattivazione
-        register_activation_hook(GIF_PLUGIN_FILE, array($this->database, 'attivazione_plugin'));
-        register_deactivation_hook(GIF_PLUGIN_FILE, array($this->database, 'disattivazione_plugin'));
-        
-        // Avvio del plugin
-        $this->avvia();
-    }
+/**
+ * Modifiche alla funzione __construct() della classe principale
+ */
+private function __construct() {
+    // Inizializzazione degli oggetti
+    $this->loader = new GIF_Loader();
+    $this->database = new GIF_Database();
+    $this->admin = new GIF_Admin($this->database);
+    $this->ajax = new GIF_Ajax($this->database);
+    $this->settings = new GIF_Settings();
+    $this->handler = new GIF_Handler($this->database); // Aggiunta nuova istanza
+    
+    // Registrazione dei hook di attivazione e disattivazione
+    register_activation_hook(GIF_PLUGIN_FILE, array($this->database, 'attivazione_plugin'));
+    register_deactivation_hook(GIF_PLUGIN_FILE, array($this->database, 'disattivazione_plugin'));
+    
+    // Avvio del plugin
+    $this->avvia();
+}
     
     /**
      * Avvia il plugin

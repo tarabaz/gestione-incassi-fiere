@@ -87,6 +87,14 @@ class GIF_Admin {
     /**
      * Aggiunta menu nell'area amministrativa
      */
+	 
+	/**
+	* Pagina vuota per l'eliminazione
+	*/
+	public function dummy_page() {
+		// Non fa nulla, serve solo per il routing
+	}	 
+	 
     public function aggiungi_menu_admin() {
         // Menu principale
         add_menu_page(
@@ -98,7 +106,17 @@ class GIF_Admin {
             'dashicons-chart-area',
             30
         );
-        
+		
+        // Pagina nascosta per l'eliminazione
+		add_submenu_page(
+			null, // Non mostrarla nel menu
+			__('Elimina Fiera', 'gestione-incassi-fiere'),
+			__('Elimina Fiera', 'gestione-incassi-fiere'),
+			'manage_options',
+			'gestione-incassi-fiere-elimina',
+			array($this, 'dummy_page')
+		);
+		
         // Sottomenu
         add_submenu_page(
             'gestione-incassi-fiere',
@@ -144,6 +162,19 @@ class GIF_Admin {
             'gestione-incassi-fiere-impostazioni',
             array($this, 'pagina_impostazioni')
         );
+		/**
+ * Aggiungi questa pagina nascosta alla funzione aggiungi_menu_admin() della classe GIF_Admin
+ */
+// Pagina nascosta per l'eliminazione
+add_submenu_page(
+    null, // Non mostrarla nel menu
+    __('Elimina Fiera', 'gestione-incassi-fiere'),
+    __('Elimina Fiera', 'gestione-incassi-fiere'),
+    'manage_options',
+    'gestione-incassi-fiere-elimina',
+    array($this, 'dummy_page')
+);
+
     }
     
     /**
