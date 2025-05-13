@@ -128,136 +128,65 @@ if (isset($_GET['message'])) {
     </div>
 </div>
 <!-- Parte modificata del template elenco-fiere.php -->
+/**
+ * Assicurati che il seguente script si trovi alla fine del file templates/elenco-fiere.php
+ * Sostituisci completamente lo script attuale con questo
+ */
+
 <script>
 jQuery(document).ready(function($) {
-    // Fix per l'errore "Cannot reinitialise DataTable"
-    if ($.fn.DataTable.isDataTable('#tabella-fiere')) {
-        // Se la tabella è già stata inizializzata, distruggi l'istanza precedente
+    // Soluzione definitiva per l'errore di DataTables
+    // Prima distruggiamo qualsiasi istanza esistente della tabella
+    if ($.fn.dataTable.isDataTable('#tabella-fiere')) {
         $('#tabella-fiere').DataTable().destroy();
+        console.log('Istanza DataTables esistente distrutta');
     }
     
-    // Inizializza DataTables
-    var table = $('#tabella-fiere').DataTable({
-        responsive: true,
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
-        },
-        order: [[1, 'desc']], // Ordina per data di default
-        columnDefs: [
-            { targets: 'no-sort', orderable: false }
-        ],
-        pageLength: 25,
-        dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'copy',
-                text: '<span class="dashicons dashicons-clipboard"></span> Copia',
-                className: 'gif-dt-button'
-            },
-            {
-                extend: 'excel',
-                text: '<span class="dashicons dashicons-media-spreadsheet"></span> Excel',
-                className: 'gif-dt-button'
-            },
-            {
-                extend: 'pdf',
-                text: '<span class="dashicons dashicons-pdf"></span> PDF',
-                className: 'gif-dt-button'
-            },
-            {
-                extend: 'print',
-                text: '<span class="dashicons dashicons-printer"></span> Stampa',
-                className: 'gif-dt-button'
-            }
-        ]
-    });
+    // Anche se non dovrebbe essere necessario, rimuoviamo qualsiasi attributo DataTables
+    $('#tabella-fiere').removeAttr('aria-describedby');
+    $('#tabella-fiere').removeData();
     
-    // Gestione eliminazione fiera - CORREZIONE COMPLETA
-    $(document).on('click', '.elimina-fiera', function(e) {
-        e.preventDefault();
-        
-        var id = $(this).data('id');
-        var row = $(this).closest('tr');
-        
-        console.log('ID fiera da eliminare:', id);
-        
-        // Verifica se l'ID è valido
-        if (!id) {
-            console.error('ID mancante o non valido');
-            Swal.fire({
-                icon: 'error',
-                title: 'Errore',
-                text: 'ID fiera non valido. Impossibile procedere con l\'eliminazione.'
-            });
-            return;
-        }
-        
-        Swal.fire({
-            title: gif_vars.testi.conferma_eliminazione,
-            text: "Questa operazione non può essere annullata",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: gif_vars.testi.conferma_si,
-            cancelButtonText: gif_vars.testi.conferma_no
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: gif_vars.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: 'elimina_fiera',
-                        id: id,
-                        nonce: gif_vars.nonce
-                    },
-                    beforeSend: function() {
-                        // Mostra loader
-                        Swal.fire({
-                            title: 'Eliminazione in corso...',
-                            text: 'Sto cancellando la fiera dal database',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                    },
-                    success: function(response) {
-                        console.log('Risposta del server:', response);
-                        
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Eliminato!',
-                                text: 'La fiera è stata eliminata con successo.',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                            
-                            // Forza il ricaricamento della pagina dopo l'eliminazione
-                            setTimeout(function() {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Errore!',
-                                text: 'Si è verificato un errore durante l\'eliminazione: ' + (response.data || 'Errore sconosciuto')
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Errore AJAX:', {xhr: xhr, status: status, error: error});
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Errore di connessione',
-                            text: 'Si è verificato un errore durante la comunicazione con il server: ' + error
-                        });
-                    }
-                });
-            }
+    // Rimuovi eventuali elementi DataTables residui
+    $('.dataTables_wrapper').remove();
+    
+    // Aspetta un momento prima di reinizializzare
+    setTimeout(function() {
+        // Inizializza DataTables con una nuova configurazione
+        var table = $('#tabella-fiere').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
+            },
+            order: [[1, 'desc']], // Ordina per data di default
+            columnDefs: [
+                { targets: 'no-sort', orderable: false }
+            ],
+            pageLength: 25,
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'copy',
+                    text: '<span class="dashicons dashicons-clipboard"></span> Copia',
+                    className: 'gif-dt-button'
+                },
+                {
+                    extend: 'excel',
+                    text: '<span class="dashicons dashicons-media-spreadsheet"></span> Excel',
+                    className: 'gif-dt-button'
+                },
+                {
+                    extend: 'pdf',
+                    text: '<span class="dashicons dashicons-pdf"></span> PDF',
+                    className: 'gif-dt-button'
+                },
+                {
+                    extend: 'print',
+                    text: '<span class="dashicons dashicons-printer"></span> Stampa',
+                    className: 'gif-dt-button'
+                }
+            ]
         });
-    });
+        console.log('DataTables reinizializzato con successo');
+    }, 100);
 });
 </script>
