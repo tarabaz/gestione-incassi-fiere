@@ -42,3 +42,5 @@ function gif_ajax_elimina_fiera() {
         wp_send_json_error('Errore durante la cancellazione');
     }
 }
+
+

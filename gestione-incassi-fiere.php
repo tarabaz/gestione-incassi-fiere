@@ -24,6 +24,7 @@ require_once GIF_PLUGIN_DIR . 'includes/class-gif-admin.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-database.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-ajax.php';
 require_once GIF_PLUGIN_DIR . 'includes/class-gif-settings.php';
+require_once plugin_dir_path(__FILE__) . 'includes/ajax-handlers.php';
 
 /**
  * Classe principale del plugin
@@ -111,6 +112,9 @@ class Gestione_Incassi_Fiere {
 function gif_avvia_plugin() {
     return Gestione_Incassi_Fiere::get_instance();
 }
+
+
+
 
 // Avvio del plugin
 gif_avvia_plugin();
