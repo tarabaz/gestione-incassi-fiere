@@ -134,22 +134,22 @@ if (isset($_GET['message'])) {
 
 <script>
 jQuery(document).ready(function($) {
-    // Se DataTables è già inizializzato, distruggilo
-    if ($.fn.DataTable.isDataTable('#tabella-fiere')) {
-        $('#tabella-fiere').DataTable().destroy();
+    // Verifica che la funzione esista
+    if (typeof destroyExistingDataTable === 'function') {
+        console.log("Chiamata alla funzione destroyExistingDataTable da elenco-fiere.php");
+        destroyExistingDataTable();
+    } else {
+        console.error("Funzione destroyExistingDataTable non trovata - potrebbe esserci un problema con il caricamento degli script");
+        
+        // Fallback di emergenza
+        if ($.fn.dataTable && $.fn.dataTable.isDataTable('#tabella-fiere')) {
+            $('#tabella-fiere').DataTable().destroy();
+        }
+        
+        $('#tabella-fiere').DataTable({
+            responsive: true,
+            pageLength: 25
+        });
     }
-    
-    // Inizializza DataTables direttamente qui
-    $('#tabella-fiere').DataTable({
-        responsive: true,
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
-        },
-        order: [[1, 'desc']], // Ordina per data di default
-        columnDefs: [
-            { targets: 'no-sort', orderable: false }
-        ],
-        pageLength: 25
-    });
 });
 </script>

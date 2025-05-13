@@ -1,73 +1,90 @@
 /**
- * Crea un nuovo file: assets/js/datatables-init.js
- * Questo file gestirà l'inizializzazione di DataTables in modo sicuro
+ * Sostituisci completamente il contenuto del file assets/js/datatables-init.js
+ * con questo codice aggiornato
  */
 
+// Variabile globale per tenere traccia dell'inizializzazione
+window.gifDataTableInitialized = false;
+
 jQuery(document).ready(function($) {
-    // Funzione per inizializzare DataTables in modo sicuro
-    function initGifDataTable() {
-        // Verifica se la tabella esiste
-        if ($('#tabella-fiere').length === 0) {
-            return;
-        }
+    console.log("Script datatables-init.js caricato");
+    
+    // Distruggi qualsiasi istanza precedente con un po' di ritardo
+    setTimeout(function() {
+        destroyExistingDataTable();
+    }, 100);
+});
+
+// Funzione per distruggere l'istanza esistente
+function destroyExistingDataTable() {
+    var $ = jQuery;
+    console.log("Controllo istanze DataTables esistenti...");
+    
+    // Se esiste già un'istanza DataTables, distruggila completamente
+    if ($.fn.dataTable && $.fn.dataTable.isDataTable('#tabella-fiere')) {
+        console.log("Istanza DataTables trovata - Distruzione in corso...");
         
-        // Verifica se DataTables è già stato inizializzato
-        if ($.fn.DataTable.isDataTable('#tabella-fiere')) {
+        try {
+            // Distruggi l'istanza DataTables
             $('#tabella-fiere').DataTable().destroy();
-            console.log('Tabella DataTables esistente distrutta');
-        }
-        
-        // Pulizia completa
-        $('#tabella-fiere').removeAttr('aria-describedby');
-        $('#tabella-fiere').removeData();
-        $('.dataTables_wrapper').remove();
-        
-        // Inizializzazione con breve ritardo
-        setTimeout(function() {
-            try {
-                var table = $('#tabella-fiere').DataTable({
-                    responsive: true,
-                    language: {
-                        url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/it-IT.json'
-                    },
-                    order: [[1, 'desc']], // Ordina per data di default
-                    columnDefs: [
-                        { targets: 'no-sort', orderable: false }
-                    ],
-                    pageLength: 25,
-                    dom: 'Bfrtip',
-                    buttons: [
-                        {
-                            extend: 'copy',
-                            text: '<span class="dashicons dashicons-clipboard"></span> Copia',
-                            className: 'gif-dt-button'
-                        },
-                        {
-                            extend: 'excel',
-                            text: '<span class="dashicons dashicons-media-spreadsheet"></span> Excel',
-                            className: 'gif-dt-button'
-                        },
-                        {
-                            extend: 'pdf',
-                            text: '<span class="dashicons dashicons-pdf"></span> PDF',
-                            className: 'gif-dt-button'
-                        },
-                        {
-                            extend: 'print',
-                            text: '<span class="dashicons dashicons-printer"></span> Stampa',
-                            className: 'gif-dt-button'
-                        }
-                    ]
-                });
-                console.log('DataTables inizializzato con successo');
-            } catch (error) {
-                console.error('Errore durante l\'inizializzazione di DataTables:', error);
+            
+            // Rimuovi qualsiasi attributo o class aggiunto da DataTables
+            $('#tabella-fiere').removeClass('dataTable');
+            $('#tabella-fiere').removeAttr('role');
+            $('#tabella-fiere').removeAttr('aria-describedby');
+            
+            // Rimuovi wrapper e altri elementi aggiunti
+            var wrapper = $('#tabella-fiere').closest('.dataTables_wrapper');
+            if (wrapper.length) {
+                $('#tabella-fiere').insertBefore(wrapper);
+                wrapper.remove();
             }
-        }, 100);
+            
+            // Forza pulizia della cache DataTables
+            $.fn.dataTable.tables().destroy();
+            
+            console.log("Istanza DataTables distrutta con successo");
+        } catch (error) {
+            console.error("Errore durante la distruzione dell'istanza DataTables:", error);
+        }
+    } else {
+        console.log("Nessuna istanza DataTables trovata");
     }
     
-    // Inizializza la tabella se siamo nella pagina elenco-fiere
-    if (window.location.href.indexOf('gestione-incassi-fiere-elenco') !== -1) {
-        initGifDataTable();
+    // Inizializza dopo un piccolo ritardo
+    setTimeout(initializeDataTable, 200);
+}
+
+// Funzione per inizializzare DataTables
+function initializeDataTable() {
+    var $ = jQuery;
+    console.log("Tentativo di inizializzazione DataTables...");
+    
+    // Se la tabella non esiste, esci
+    if ($('#tabella-fiere').length === 0) {
+        console.log("Tabella #tabella-fiere non trovata nel DOM");
+        return;
     }
-});
+    
+    // Se è già inizializzato, non fare nulla
+    if (window.gifDataTableInitialized) {
+        console.log("DataTables già inizializzato, skip");
+        return;
+    }
+    
+    try {
+        // Inizializza DataTables con opzioni minime
+        console.log("Inizializzazione DataTables con opzioni base...");
+        var table = $('#tabella-fiere').DataTable({
+            responsive: true,
+            order: [[1, 'desc']], // Ordina per data di default
+            pageLength: 25
+        });
+        
+        // Segna come inizializzato
+        window.gifDataTableInitialized = true;
+        console.log("DataTables inizializzato con successo");
+    } catch (error) {
+        console.error("Errore durante l'inizializzazione di DataTables:", error);
+    }
+}

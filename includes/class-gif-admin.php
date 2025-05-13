@@ -28,17 +28,19 @@ class GIF_Admin {
      * Registrazione script e stili
      */
  /**
- * Modifica il metodo registra_script_stili nella classe GIF_Admin
+ * Modifica al metodo registra_script_stili della classe GIF_Admin
+ * Assicurati che il datatables-init.js sia caricato solo nella pagina elenco fiere
+ * e che tutti gli script DataTables siano in ordine corretto
  */
-/**
- * Versione corretta del metodo registra_script_stili()
- * Sostituisci l'intero metodo nella classe GIF_Admin
- */
+
 public function registra_script_stili($hook) {
     // Registra script solo nelle pagine del nostro plugin
     if (strpos($hook, 'gestione-incassi-fiere') === false) {
         return;
     }
+    
+    // Verifica se siamo nella pagina elenco fiere
+    $is_elenco_fiere = isset($_GET['page']) && $_GET['page'] === 'gestione-incassi-fiere-elenco';
     
     // Ottieni impostazioni per tema colore
     $tema_colore = $this->db->get_impostazione('tema_colore') ?: 'blue';
@@ -52,30 +54,27 @@ public function registra_script_stili($hook) {
     wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
     wp_enqueue_script('jquery-ui-datepicker');
     
-    // Chart.js
-    wp_enqueue_script('gif-chartjs', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js', array(), '3.7.0', true);
+    // Chart.js solo nelle pagine necessarie (dashboard e statistiche)
+    if (isset($_GET['page']) && ($_GET['page'] === 'gestione-incassi-fiere' || $_GET['page'] === 'gestione-incassi-fiere-stats')) {
+        wp_enqueue_script('gif-chartjs', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js', array(), '3.7.0', true);
+    }
     
     // Sweet Alert 2
     wp_enqueue_style('gif-sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css');
     wp_enqueue_script('gif-sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', array('jquery'), '11.0.0', true);
     
-    // DataTables
-    wp_enqueue_style('gif-datatables', 'https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css');
-    wp_enqueue_style('gif-datatables-responsive', 'https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css');
-    
-    wp_enqueue_script('gif-datatables', 'https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', array('jquery'), '1.11.5', true);
-    wp_enqueue_script('gif-datatables-responsive', 'https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js', array('gif-datatables'), '2.2.9', true);
-    
-    // Prova a caricare i plugin Buttons solo se strettamente necessario
-    if (isset($_GET['page']) && $_GET['page'] === 'gestione-incassi-fiere-elenco') {
-        wp_enqueue_style('gif-datatables-buttons', 'https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css');
-        wp_enqueue_script('gif-datatables-buttons', 'https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js', array('gif-datatables'), '2.2.2', true);
-        wp_enqueue_script('gif-datatables-buttons-html5', 'https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js', array('gif-datatables-buttons'), '2.2.2', true);
-        wp_enqueue_script('gif-datatables-buttons-print', 'https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js', array('gif-datatables-buttons'), '2.2.2', true);
+    // DataTables solo nella pagina elenco fiere
+    if ($is_elenco_fiere) {
+        // Versione basic di DataTables
+        wp_enqueue_style('gif-datatables', 'https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css');
+        wp_enqueue_script('gif-datatables', 'https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', array('jquery'), '1.11.5', true);
+        
+        // Script di inizializzazione personalizzato (caricato dopo tutti gli altri script)
+        wp_enqueue_script('gif-datatables-init', GIF_PLUGIN_URL . 'assets/js/datatables-init.js', array('jquery', 'gif-datatables'), GIF_PLUGIN_VERSION, true);
     }
     
     // Registrazione script principale
-    wp_enqueue_script('gif-admin-script', GIF_PLUGIN_URL . 'assets/js/admin.js', array('jquery', 'jquery-ui-datepicker', 'gif-sweetalert2', 'gif-datatables'), GIF_PLUGIN_VERSION, true);
+    wp_enqueue_script('gif-admin-script', GIF_PLUGIN_URL . 'assets/js/admin.js', array('jquery', 'jquery-ui-datepicker', 'gif-sweetalert2'), GIF_PLUGIN_VERSION, true);
     
     // Localizzazione per JavaScript
     $localizzazione = array(
@@ -94,7 +93,8 @@ public function registra_script_stili($hook) {
         ),
         'formati' => array(
             'valuta' => $this->db->get_impostazione('valuta') ?: '€'
-        )
+        ),
+        'is_elenco_fiere' => $is_elenco_fiere
     );
     
     wp_localize_script('gif-admin-script', 'gif_vars', $localizzazione);
