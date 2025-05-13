@@ -34,84 +34,76 @@ class GIF_Admin {
  */
 
 /**
- * Modifica del metodo registra_script_stili nella classe GIF_Admin
- * Assicurati che Chart.js sia caricato correttamente
+ * Modifica alla classe GIF_Admin - metodo registra_script_stili() corretto
+ * Questo metodo è spesso fonte di errori
  */
+
 public function registra_script_stili($hook) {
     // Registra script solo nelle pagine del nostro plugin
     if (strpos($hook, 'gestione-incassi-fiere') === false) {
         return;
     }
     
-    // Verifica se siamo nella pagina elenco fiere o statistiche
-    $is_elenco_fiere = isset($_GET['page']) && $_GET['page'] === 'gestione-incassi-fiere-elenco';
-    $is_statistiche = isset($_GET['page']) && $_GET['page'] === 'gestione-incassi-fiere-stats';
-    
-    // Ottieni impostazioni per tema colore
-    $tema_colore = $this->db->get_impostazione('tema_colore') ?: 'blue';
-    
-    // Registrazione stili
-    wp_enqueue_style('gif-dashicons', admin_url('css/dashicons.min.css'));
-    wp_enqueue_style('gif-admin-style', GIF_PLUGIN_URL . 'assets/css/admin.css', array(), GIF_PLUGIN_VERSION);
-    wp_enqueue_style('gif-theme-style', GIF_PLUGIN_URL . 'assets/css/theme-' . $tema_colore . '.css', array('gif-admin-style'), GIF_PLUGIN_VERSION);
-    
-    // jQuery UI Datepicker
-    wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
-    wp_enqueue_script('jquery-ui-datepicker');
-    
-    // Chart.js - Assicurati che sia caricato nella pagina statistiche
-// Chart.js (notare il parametro false che indica di NON caricare in footer)
-if ($is_statistiche) {
-    // Carica Chart.js non in footer per assicurarsi che sia disponibile prima dell'inizializzazione
-    wp_enqueue_script('gif-chartjs', 'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js', array('jquery'), '3.7.0', false);
-    
-    // Assicurati che anche il locale sia caricato non in footer
-    wp_register_script('gif-chartjs-local', GIF_PLUGIN_URL . 'assets/js/chart.min.js', array('jquery'), '3.7.0', false);
-    
-    // Aggiungi questo script per verificare che Chart.js sia disponibile
-    wp_add_inline_script('gif-chartjs', 'console.log("Chart.js caricato con successo");', 'after');
-}
-    
-    // Sweet Alert 2
-    wp_enqueue_style('gif-sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css');
-    wp_enqueue_script('gif-sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', array('jquery'), '11.0.0', true);
-    
-    // DataTables solo nella pagina elenco fiere
-    if ($is_elenco_fiere) {
-        // Versione basic di DataTables
-        wp_enqueue_style('gif-datatables', 'https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css');
-        wp_enqueue_script('gif-datatables', 'https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', array('jquery'), '1.11.5', true);
+    try {
+        // Verifica se siamo nella pagina statistiche
+        $is_statistiche = isset($_GET['page']) && $_GET['page'] === 'gestione-incassi-fiere-stats';
         
-        // Script di inizializzazione personalizzato
-        wp_enqueue_script('gif-datatables-init', GIF_PLUGIN_URL . 'assets/js/datatables-init.js', array('jquery', 'gif-datatables'), GIF_PLUGIN_VERSION, true);
+        // Ottieni impostazioni per tema colore
+        $tema_colore = $this->db->get_impostazione('tema_colore') ?: 'blue';
+        
+        // Registrazione stili
+        wp_enqueue_style('dashicons');  // Usa l'handle corretto per dashicons
+        wp_enqueue_style('gif-admin-style', GIF_PLUGIN_URL . 'assets/css/admin.css', array(), GIF_PLUGIN_VERSION);
+        wp_enqueue_style('gif-theme-style', GIF_PLUGIN_URL . 'assets/css/theme-' . $tema_colore . '.css', array('gif-admin-style'), GIF_PLUGIN_VERSION);
+        
+        // jQuery UI Datepicker
+        wp_enqueue_style('jquery-ui-style', '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css');
+        wp_enqueue_script('jquery-ui-datepicker');
+        
+        // Chart.js solo per la pagina statistiche
+        if ($is_statistiche) {
+            wp_enqueue_script('gif-chartjs', 'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js', array('jquery'), '3.7.0', false);
+        }
+        
+        // Sweet Alert 2
+        wp_enqueue_style('gif-sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css');
+        wp_enqueue_script('gif-sweetalert2', 'https://cdn.jsdelivr.net/npm/sweetalert2@11', array('jquery'), '11.0.0', true);
+        
+        // DataTables solo per la pagina elenco
+        if (isset($_GET['page']) && $_GET['page'] === 'gestione-incassi-fiere-elenco') {
+            wp_enqueue_style('gif-datatables', 'https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css');
+            wp_enqueue_script('gif-datatables', 'https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js', array('jquery'), '1.11.5', true);
+            wp_enqueue_script('gif-datatables-init', GIF_PLUGIN_URL . 'assets/js/datatables-init.js', array('jquery', 'gif-datatables'), GIF_PLUGIN_VERSION, true);
+        }
+        
+        // Registrazione script principale
+        wp_enqueue_script('gif-admin-script', GIF_PLUGIN_URL . 'assets/js/admin.js', array('jquery', 'jquery-ui-datepicker', 'gif-sweetalert2'), GIF_PLUGIN_VERSION, true);
+        
+        // Localizzazione per JavaScript
+        $localizzazione = array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('gif_nonce'),
+            'tema_colore' => $tema_colore,
+            'impostazioni' => $this->db->get_tutte_impostazioni(),
+            'testi' => array(
+                'conferma_eliminazione' => __('Sei sicuro di voler eliminare questa fiera?', 'gestione-incassi-fiere'),
+                'conferma_si' => __('Sì, elimina', 'gestione-incassi-fiere'),
+                'conferma_no' => __('Annulla', 'gestione-incassi-fiere'),
+                'eliminazione_successo' => __('Fiera eliminata con successo!', 'gestione-incassi-fiere'),
+                'eliminazione_errore' => __('Errore durante l\'eliminazione', 'gestione-incassi-fiere'),
+                'salvataggio_successo' => __('Dati salvati con successo!', 'gestione-incassi-fiere'),
+                'salvataggio_errore' => __('Errore durante il salvataggio', 'gestione-incassi-fiere')
+            ),
+            'formati' => array(
+                'valuta' => $this->db->get_impostazione('valuta') ?: '€'
+            )
+        );
+        
+        wp_localize_script('gif-admin-script', 'gif_vars', $localizzazione);
+    } catch (Exception $e) {
+        // Log dell'errore
+        error_log('Errore nella registrazione degli script e stili: ' . $e->getMessage());
     }
-    
-    // Registrazione script principale
-    wp_enqueue_script('gif-admin-script', GIF_PLUGIN_URL . 'assets/js/admin.js', array('jquery', 'jquery-ui-datepicker', 'gif-sweetalert2'), GIF_PLUGIN_VERSION, true);
-    
-    // Localizzazione per JavaScript
-    $localizzazione = array(
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('gif_nonce'),
-        'tema_colore' => $tema_colore,
-        'impostazioni' => $this->db->get_tutte_impostazioni(),
-        'testi' => array(
-            'conferma_eliminazione' => __('Sei sicuro di voler eliminare questa fiera?', 'gestione-incassi-fiere'),
-            'conferma_si' => __('Sì, elimina', 'gestione-incassi-fiere'),
-            'conferma_no' => __('Annulla', 'gestione-incassi-fiere'),
-            'eliminazione_successo' => __('Fiera eliminata con successo!', 'gestione-incassi-fiere'),
-            'eliminazione_errore' => __('Errore durante l\'eliminazione', 'gestione-incassi-fiere'),
-            'salvataggio_successo' => __('Dati salvati con successo!', 'gestione-incassi-fiere'),
-            'salvataggio_errore' => __('Errore durante il salvataggio', 'gestione-incassi-fiere')
-        ),
-        'formati' => array(
-            'valuta' => $this->db->get_impostazione('valuta') ?: '€'
-        ),
-        'is_elenco_fiere' => $is_elenco_fiere,
-        'is_statistiche' => $is_statistiche
-    );
-    
-    wp_localize_script('gif-admin-script', 'gif_vars', $localizzazione);
 }
     /**
      * Aggiunta menu nell'area amministrativa
