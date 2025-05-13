@@ -120,29 +120,25 @@
             </div>
             
             <!-- Grafici principali -->
-            <div class="gif-row">
-                <div class="gif-col gif-col-8">
-                    <div class="gif-box">
-                        <div class="gif-box-header">
-                            <h2><?php _e('Andamento Incassi e Guadagni', 'gestione-incassi-fiere'); ?></h2>
-                        </div>
-                        <div class="gif-box-content">
-                            <div id="grafico-andamento" style="height: 350px;"></div>
-                        </div>
-                    </div>
-                </div>
+<div class="gif-box">
+    <div class="gif-box-header">
+        <h2><?php _e('Andamento Incassi e Guadagni', 'gestione-incassi-fiere'); ?></h2>
+    </div>
+    <div class="gif-box-content">
+        <!-- Importante: Imposta l'altezza direttamente sull'elemento canvas, non solo tramite style -->
+        <canvas id="grafico-andamento" width="800" height="350"></canvas>
+    </div>
+</div>
                 
-                <div class="gif-col gif-col-4">
-                    <div class="gif-box">
-                        <div class="gif-box-header">
-                            <h2><?php _e('Distribuzione Incassi', 'gestione-incassi-fiere'); ?></h2>
-                        </div>
-                        <div class="gif-box-content">
-                            <div id="grafico-distribuzione" style="height: 350px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="gif-box">
+    <div class="gif-box-header">
+        <h2><?php _e('Distribuzione Incassi', 'gestione-incassi-fiere'); ?></h2>
+    </div>
+    <div class="gif-box-content">
+        <!-- Importante: Imposta l'altezza direttamente sull'elemento canvas, non solo tramite style -->
+        <canvas id="grafico-distribuzione" width="400" height="350"></canvas>
+    </div>
+</div>
             
             <!-- Miglior e peggior fiera -->
             <div class="gif-row">
@@ -227,47 +223,64 @@
         <?php endif; ?>
     </div>
 </div>
-<!-- Modifica alla pagina statistiche.php per aggiungere debug e fix -->
+
+
 <script>
-jQuery(document).ready(function($) {
-    <?php if (!empty($stats->totale_fiere)) : ?>
+// Attendi che il documento sia completamente caricato
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM caricato, verifico elementi canvas e Chart.js");
     
-    console.log("Inizializzazione grafici delle statistiche...");
+    // Verifica gli elementi canvas
+    var canvas1 = document.getElementById('grafico-andamento');
+    var canvas2 = document.getElementById('grafico-distribuzione');
     
-    // Dati per i grafici
-    var periodi = <?php echo json_encode($labels); ?>;
-    var incassi = <?php echo json_encode($incassi); ?>;
-    var guadagni = <?php echo json_encode($guadagni); ?>;
+    if (!canvas1) {
+        console.error("Canvas #grafico-andamento non trovato nel DOM");
+        return;
+    }
     
-    console.log("Dati grafici:", {
-        periodi: periodi,
-        incassi: incassi,
-        guadagni: guadagni,
-        incasso_contanti: <?php echo $stats->incasso_contanti; ?>,
-        incasso_pos: <?php echo $stats->incasso_pos; ?>
-    });
+    if (!canvas2) {
+        console.error("Canvas #grafico-distribuzione non trovato nel DOM");
+        return;
+    }
     
-    // Se non ci sono periodi definiti, mostra un messaggio
-    if (periodi.length === 0) {
-        $("#grafico-andamento").html('<div style="text-align: center; padding: 50px 20px;"><p style="color: #646970; font-size: 16px;">Non ci sono dati sufficienti per visualizzare il grafico</p></div>');
-        $("#grafico-distribuzione").html('<div style="text-align: center; padding: 50px 20px;"><p style="color: #646970; font-size: 16px;">Non ci sono dati sufficienti per visualizzare il grafico</p></div>');
-    } else {
-        // Grafico andamento
-        var ctx = document.getElementById('grafico-andamento').getContext('2d');
-        new Chart(ctx, {
+    // Verifica che Chart.js sia caricato
+    if (typeof Chart === 'undefined') {
+        console.error("Chart.js non è caricato");
+        return;
+    }
+    
+    console.log("Canvas e Chart.js trovati, inizializzazione grafici...");
+    
+    // Inizializza il grafico andamento
+    try {
+        var ctx1 = canvas1.getContext('2d');
+        if (!ctx1) {
+            console.error("Impossibile ottenere il contesto 2d dal canvas #grafico-andamento");
+            return;
+        }
+        
+        // Dati per il grafico
+        var labels = <?php echo json_encode($labels); ?>;
+        var incassi = <?php echo json_encode($incassi); ?>;
+        var guadagni = <?php echo json_encode($guadagni); ?>;
+        
+        console.log("Dati grafico andamento:", {labels, incassi, guadagni});
+        
+        new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: periodi,
+                labels: labels,
                 datasets: [
                     {
-                        label: '<?php _e('Incasso Totale', 'gestione-incassi-fiere'); ?> (<?php echo $valuta; ?>)',
+                        label: 'Incasso Totale',
                         data: incassi,
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1
                     },
                     {
-                        label: '<?php _e('Guadagno Netto', 'gestione-incassi-fiere'); ?> (<?php echo $valuta; ?>)',
+                        label: 'Guadagno Netto',
                         data: guadagni,
                         backgroundColor: 'rgba(75, 192, 192, 0.5)',
                         borderColor: 'rgba(75, 192, 192, 1)',
@@ -278,57 +291,34 @@ jQuery(document).ready(function($) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '<?php echo $valuta; ?> ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += '<?php echo $valuta; ?> ' + context.parsed.y.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                return label;
-                            }
-                        }
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                }
+                maintainAspectRatio: false
             }
         });
+        
+        console.log("Grafico andamento inizializzato con successo");
+    } catch (error) {
+        console.error("Errore durante l'inizializzazione del grafico andamento:", error);
     }
     
-    // Verifica se ci sono incassi per il grafico a torta
-    var incassoContanti = <?php echo $stats->incasso_contanti; ?>;
-    var incassoPOS = <?php echo $stats->incasso_pos; ?>;
-    
-    if (incassoContanti === 0 && incassoPOS === 0) {
-        $("#grafico-distribuzione").html('<div style="text-align: center; padding: 50px 20px;"><p style="color: #646970; font-size: 16px;">Non ci sono dati di incasso per visualizzare il grafico</p></div>');
-    } else {
-        // Grafico distribuzione
-        var ctx2 = document.getElementById('grafico-distribuzione').getContext('2d');
+    // Inizializza il grafico distribuzione
+    try {
+        var ctx2 = canvas2.getContext('2d');
+        if (!ctx2) {
+            console.error("Impossibile ottenere il contesto 2d dal canvas #grafico-distribuzione");
+            return;
+        }
+        
+        var incassoContanti = <?php echo $stats->incasso_contanti ? $stats->incasso_contanti : 0; ?>;
+        var incassoPOS = <?php echo $stats->incasso_pos ? $stats->incasso_pos : 0; ?>;
+        
+        console.log("Dati grafico distribuzione:", {incassoContanti, incassoPOS});
+        
         new Chart(ctx2, {
             type: 'doughnut',
             data: {
-                labels: ['<?php _e('Incasso Contanti', 'gestione-incassi-fiere'); ?>', '<?php _e('Incasso POS', 'gestione-incassi-fiere'); ?>'],
+                labels: ['Incasso Contanti', 'Incasso POS'],
                 datasets: [{
-                    data: [
-                        incassoContanti, 
-                        incassoPOS
-                    ],
+                    data: [incassoContanti, incassoPOS],
                     backgroundColor: [
                         'rgba(255, 159, 64, 0.7)',
                         'rgba(54, 162, 235, 0.7)'
@@ -342,34 +332,13 @@ jQuery(document).ready(function($) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                var label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                var value = context.parsed;
-                                var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
-                                var percentage = Math.round((value / total) * 100);
-                                
-                                label += '<?php echo $valuta; ?> ' + value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                label += ' (' + percentage + '%)';
-                                
-                                return label;
-                            }
-                        }
-                    }
-                }
+                maintainAspectRatio: false
             }
         });
+        
+        console.log("Grafico distribuzione inizializzato con successo");
+    } catch (error) {
+        console.error("Errore durante l'inizializzazione del grafico distribuzione:", error);
     }
-    
-    <?php endif; ?>
 });
 </script>
