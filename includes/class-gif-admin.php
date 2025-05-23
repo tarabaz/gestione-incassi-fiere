@@ -202,6 +202,9 @@ add_submenu_page(
      * Pagina dashboard principale
      */
     public function pagina_principale() {
+		//ESEGUI UN DEBUG Log
+		error_log("ENTRATO in gif_render_dashboard_page()\n", 3, plugin_dir_path(__FILE__) . '../debug-mio.log');
+
         // Ottieni le statistiche generali
         $stats = $this->db->get_statistiche_generali();
         
